@@ -65,5 +65,3 @@ for i = 0:x2_0,
 end
 Q = sparse(I, J, NZ, nStates, nStates);
 
-
-
