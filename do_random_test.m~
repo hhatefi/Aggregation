@@ -35,7 +35,9 @@ Threshold = 0.05;
 clear('nMethods', 'statistics');
 
 for i = 1:nReact,
-        
+    
+    fprintf('# %d\n\n', i);
+    
     % open file
     fid = fopen(filename, 'w');
     % Generating constants
@@ -47,10 +49,9 @@ for i = 1:nReact,
     x2_0 = floor ( rand() * (maxSub - minSub) + minSub );
     
     % Generating Interval
-%    interval = [0, rand() * (maxTime - minTime) + minTime];
-    interval = [0, rand() * maxTime];
+    interval = [0, rand() * (maxTime - minTime) ];
 
-    fprintf('# %d\nK1 = %f, K2 = %f, K3 = %f, X1(0) = %d, X2(0) = %d, Interval = [0, %f]\n\n', i, c1, c2, c3, x1_0, x2_0, interval(2));
+    fprintf('# %d\nK1 = %f, K2 = %f, K3 = %f, X1(0) = %f, X2(0) = %f, Interval = [0, %f]\n\n', i, c1, c2, c3, x1_0, x2_0, interval(2));
     
     % Run compare
     compare(c1, c2, c3, x1_0, x2_0, interval, 0, fid, Threshold);

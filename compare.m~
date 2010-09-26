@@ -53,6 +53,11 @@ if FILEID > 0,
     fprintf(FILEID, '%f,%f,%f,%f\n', mean_rmse, sd_rmse, mean_mre, sd_mre);
 end
 
+if isnan( mean_rmse),
+    werrtt= 0;
+end
+return;
+
 % NAA
 exp_of_x4_NAA = calc_exp_NAA(Q_aggregated, t_exact);
 

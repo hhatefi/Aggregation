@@ -16,11 +16,6 @@ if nargin < 9 || isempty(THRESHOLD),
     THRESHOLD = 0.05;
 end
 
-% % %Test
-% [time_samples, transient_prob]= solve_splitted_ode(c1, c2, x1_0, x2_0, interval, @ode15s);
-% return
-% % %Test
-
 % Exact method
 [Q_exact, nStates] = gen_mat_exact(c1, c2, c3, x1_0, x2_0);
 pi0 = zeros(1, nStates);
@@ -51,6 +46,10 @@ if PLOT > 0,
 end
 if FILEID > 0,
     fprintf(FILEID, '%f,%f,%f,%f\n', mean_rmse, sd_rmse, mean_mre, sd_mre);
+end
+
+if isnan( mean_rmse),
+    fprintf(2, 'Error: Mean of error is not a number.\n');
 end
 
 % NAA
@@ -190,6 +189,25 @@ if FILEID > 0,
 end
 
 
+% Combining MMA ode with transient analysis
+[t_cmt, tr_prob] = solve_kinetics_and_transient_ode(c1, c2, c3, x1_0, x2_0, interval, @ode45);
+exp_of_x4_cmt = calc_exp_from_prob(x2_0, tr_prob);
+[t_error, mse, mre] = calc_error_between_dists(t_cmt, tr_prob, t_exact, trans_prob_exact, THRESHOLD);
+mean_rmse = sum(mse.^0.5) / size(t_error,1);
+sd_rmse = sqrt(sum(mse) / size(t_error,1) - mean_rmse^2);
+mean_mre = sum(mre) / size(t_error,1);
+sd_mre = sqrt(sum(mre .* mre) / size(t_error,1) - mean_mre^2);
+if PLOT > 0,
+    figure;
+    plot(t_error, sqrt(mse), t_error, mre);
+    title('Error of Combining kinetics ode with transient analysis, Rate = c3.x3(t)');
+    legend('RMSE', 'MRE');
+    xlabel(sprintf('RMSE: Mean = %0.5f,\tSD = %0.5f\nMRE: Mean = %0.5f,\tSD = %0.5f', mean_rmse, sd_rmse, mean_mre, sd_mre));
+end
+if FILEID > 0,
+    fprintf(FILEID, '%f,%f,%f,%f\n', mean_rmse, sd_rmse, mean_mre, sd_mre);
+end
+
 
 % analysing splitted Markov chain
 [t_smc, tr_prob]= solve_splitted_ode(c1, c2, c3, x1_0, x2_0, interval, @ode15s);
@@ -203,6 +221,26 @@ if PLOT > 0,
     figure;
     plot(t_error, sqrt(mse), t_error, mre);
     title('Error of splitted CTMC');
+    legend('RMSE', 'MRE');
+    xlabel(sprintf('RMSE: Mean = %0.5f,\tSD = %0.5f\nMRE: Mean = %0.5f,\tSD = %0.5f', mean_rmse, sd_rmse, mean_mre, sd_mre));
+end
+if FILEID > 0,
+    fprintf(FILEID, '%f,%f,%f,%f\n', mean_rmse, sd_rmse, mean_mre, sd_mre);
+end
+
+
+% analysing splitted Markov chain with approximation
+[t_smc_app, tr_prob]= solve_splitted_ode_opp(c1, c2, c3, x1_0, x2_0, interval, @ode15s);
+exp_of_x4_smc_app = calc_exp_from_prob(x2_0, tr_prob);
+[t_error, mse, mre] = calc_error_between_dists(t_smc_app, tr_prob, t_exact, trans_prob_exact, THRESHOLD);
+mean_rmse = sum(mse.^0.5) / size(t_error,1);
+sd_rmse = sqrt(sum(mse) / size(t_error,1) - mean_rmse^2);
+mean_mre = sum(mre) / size(t_error,1);
+sd_mre = sqrt(sum(mre .* mre) / size(t_error,1) - mean_mre^2);
+if PLOT > 0,
+    figure;
+    plot(t_error, sqrt(mse), t_error, mre);
+    title('Error of splitted CTMC (with approximation)');
     legend('RMSE', 'MRE');
     xlabel(sprintf('RMSE: Mean = %0.5f,\tSD = %0.5f\nMRE: Mean = %0.5f,\tSD = %0.5f', mean_rmse, sd_rmse, mean_mre, sd_mre));
 end

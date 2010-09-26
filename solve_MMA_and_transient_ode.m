@@ -1,4 +1,6 @@
-function [time_samples, transient_prob, exp_of_x4] = solve_kinetics_and_transient_ode(c1, c2, c3, x1_0, x2_0, interval, solver)
+function [time_samples, transient_prob, exp_of_x4] = solve_MMA_and_transient_ode(c1, c2, c3, x1_0, x2_0, interval, solver)
+
+km = (c2 + c3) / c1;
 
 % x(t) = [pi(0); ... p(x2_0); E(t); S(t); C(t); P(t)]
 x0 = zeros(x2_0 + 5, 1);
@@ -14,12 +16,9 @@ exp_of_x4 = solution(:, x2_0 + 5);
 
     xdot = zeros(x2_0 + 5, 1);
 
-    % kinetics ode 
-    xdot(x2_0 + 2) = -c1 * x(x2_0 + 2) * x(x2_0 + 3) + (c2 + c3)*x(x2_0 + 4);
-    xdot(x2_0 + 3) = -c1 * x(x2_0 + 2) * x(x2_0 + 3) + c2 * x(x2_0 + 4);
-    xdot(x2_0 + 4) = -xdot(x2_0 + 2);
-    xdot(x2_0 + 5) = c3*x(x2_0 + 4);
-
+    % Michaelis-Menten-Approximation
+    xdot(x2_0 + 3) = -c1 * x1_0 * x(x2_0 + 3) + x1_0 * x(x2_0 + 3) * (c1 * x(x2_0 + 3) + c2) / ( x(x2_0 + 3) + km ) ;
+    xdot(x2_0 + 5) = c3 * x1_0 * x(x2_0 + 3) / ( x(x2_0 + 3) + km );
 
 
     % Markov chain ode

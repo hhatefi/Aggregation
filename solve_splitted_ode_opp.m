@@ -1,4 +1,4 @@
-function [time_samples, transient_prob]= solve_splitted_ode(c1, c2, c3, x1_0, x2_0, interval, solver)
+function [time_samples, transient_prob]= solve_splitted_ode_opp(c1, c2, c3, x1_0, x2_0, interval, solver)
 
 % Q_exact is the matrix of orignal Markov chain
 % Q_splitted_T is the collection of matrices that each of them is the 
@@ -6,7 +6,7 @@ function [time_samples, transient_prob]= solve_splitted_ode(c1, c2, c3, x1_0, x2
 
 Q_splitted_T = cell(x2_0, 1);
 time_samples = cell(x2_0, 1);
-tr_probs = cell(x2_0, 1);
+exp_of_x3s = cell(x2_0, 1);
 
 for i = 0:x2_0 - 1,
 	x = [x1_0 x2_0 - i 0 i];
@@ -50,30 +50,18 @@ for i = 0:x2_0 - 1,
 		x(2) = x(2) - 1;
 		x(3) = x(3) + 1;
     end
-    Q_splitted_T{i + 1} = (sparse(I, J, NZ, nState4ithStage, nState4ithStage))';
+    Q_splitted_T{i + 1} = sparse(I, J, NZ, nState4ithStage, nState4ithStage);    
     
-    
-    % solve ode for the currrent split
-    pi0 = zeros(nState4ithStage, 1);
-    pi0(1) = 1;
-    [time_sample_i, tr_prob_i] = solver (@deriva_i, interval, pi0);
+    % calculate the approximated expectation of x3 
+    [time_sample_i, exp_of_x3_i] = app_exp_of_x3_in_birth_death_process(Q_splitted_T{i + 1}, interval);
     time_samples{i + 1} = time_sample_i;
-    tr_probs{i + 1} = tr_prob_i;
-    
-%     % Test
-%     [tt,expexp] = app_exp_of_x3_in_birth_death_process((Q_splitted_T{i+1})', interval);
-%     plot( tt, expexp, time_sample_i, tr_prob_i * (0:(nState4ithStage - 1))');
-%     % Test
-    
+    exp_of_x3s{i + 1} = exp_of_x3_i;
+
 end
 pi0 = zeros(x2_0 + 1, 1);
 pi0(1) = 1;
 [time_samples, transient_prob] = solver(@deriva_main, interval, pi0);
 
-
-    function pdot = deriva_i(t, p)
-        pdot = Q_splitted_T{i + 1} * p;
-    end
 
     function pdot = deriva_main(t, p)
         pdot = zeros(x2_0 + 1, 1);
@@ -88,19 +76,20 @@ pi0(1) = 1;
 
     function lambda_i_t = calc_lambda(t, i)
         % calculate outgoing lambda from state i at time t
+        lambda_i_t = -1;
         if i < 1 || i > x2_0,
             lambda_i_t = 0;
         else
             len = length(time_samples{i});
             for k = 1:len - 1,
                 if t >= time_samples{i}(k) && t <= time_samples{i}(k + 1),
-                    tr_probs_t = (tr_probs{i}(k + 1,:) - tr_probs{i}(k,:)) / (time_samples{i}(k + 1) - time_samples{i}(k)) * (t - time_samples{i}(k)) + tr_probs{i}(k,:);
-                    lambda_i_t = c3 * sum((0:size(tr_probs{i}, 2) - 1).*tr_probs_t);
+                    exp_of_x3_t = (exp_of_x3s{i}(k + 1) - exp_of_x3s{i}(k)) / (time_samples{i}(k + 1) - time_samples{i}(k)) * (t - time_samples{i}(k)) + exp_of_x3s{i}(k);
+                    lambda_i_t = c3 * exp_of_x3_t;
                     break;
                 end
             end
-            if ~(k < len),
-                fprintf('ERROR, No interpolation interval found.\n');
+            if lambda_i_t == -1,
+                fprintf(2, 'ERROR: No interpolation interval found.\n');
             end
         end
     end
