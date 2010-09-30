@@ -46,8 +46,9 @@ while cur_time < interval(2),
     elseif lower_state == size(Q, 1) - 1,
         ls_exp_of_x3 = lower_state - 1;
     else
-        ls_exp_of_x3 = - (lower_state - 1) * Q(lower_state + 1, lower_state)/Q(lower_state + 1, lower_state + 1) - ...
-            (lower_state + 1) * Q(lower_state + 1, lower_state + 2) / Q(lower_state + 1, lower_state + 1);
+        prob = 1;% - exp(Q(lower_state + 1, lower_state + 1) * exp_sojourn_time);
+        ls_exp_of_x3 = (-(lower_state - 1) * Q(lower_state + 1, lower_state)/Q(lower_state + 1, lower_state + 1) - ...
+            (lower_state + 1) * Q(lower_state + 1, lower_state + 2) / Q(lower_state + 1, lower_state + 1)) * prob  + lower_state * (1 - prob);
     end
 
     % Expection of x3 for upper state
@@ -61,14 +62,15 @@ while cur_time < interval(2),
         end
         us_exp_of_x3 = 0;
     else
-        us_exp_of_x3 = - (upper_state - 1) * Q(upper_state + 1, upper_state)/Q(upper_state + 1, upper_state + 1) - ...
-            (upper_state + 1) * Q(upper_state + 1, upper_state + 2) / Q(upper_state + 1, upper_state + 1);
+        prob = 1;% - exp(Q(upper_state + 1, upper_state + 1) * exp_sojourn_time);
+        us_exp_of_x3 = (-(upper_state - 1) * Q(upper_state + 1, upper_state)/Q(upper_state + 1, upper_state + 1) - ...
+            (upper_state + 1) * Q(upper_state + 1, upper_state + 2) / Q(upper_state + 1, upper_state + 1)) * prob + upper_state * (1 - prob);
     end
             
     cur_time = cur_time + exp_sojourn_time;
     cur_exp_of_x3 = lower_state_prob * ls_exp_of_x3 + upper_state_prob * us_exp_of_x3;
     
-    if abs(cur_exp_of_x3 - exp_of_x3(i - 1)) < PRECISION,
+    if abs(cur_exp_of_x3 - exp_of_x3(i - 1)) < PRECISION || cur_exp_of_x3 - exp_of_x3(i - 1) < 0,
         time_samples(i) = cur_time;
         exp_of_x3(i) = calc_exp_of_x3_ss();
         
@@ -102,5 +104,4 @@ exp_of_x3(i) = cur_exp_of_x3;
         exp_of_x3_ss = exp_of_x3_ss / sum_p;
 
     end
-
 end

@@ -7,12 +7,12 @@ filename = 'tmp.csv';
 nReact = 200;
 
 % Enzyme
-minEnz = 20;
-maxEnz = 150;
+minEnz = 10;
+maxEnz = 100;
 
 % Substrate
-minSub = 20;
-maxSub = 150;
+minSub = 10;
+maxSub = 100;
 
 % C1
 minC1 = 0.001;

@@ -249,6 +249,26 @@ if FILEID > 0,
 end
 
 
+% analysing splitted Markov chain with analytic solution of expection of x3
+% inside macro states
+[t_smc_asm, tr_prob]= solve_splitted_ode_with_analytic_sol_for_exp_x3(c1, c2, c3, x1_0, x2_0, interval, @ode15s);
+exp_of_x4_smc_asm = calc_exp_from_prob(x2_0, tr_prob);
+[t_error, mse, mre] = calc_error_between_dists(t_smc_asm, tr_prob, t_exact, trans_prob_exact, THRESHOLD);
+mean_rmse = sum(mse.^0.5) / size(t_error,1);
+sd_rmse = sqrt(sum(mse) / size(t_error,1) - mean_rmse^2);
+mean_mre = sum(mre) / size(t_error,1);
+sd_mre = sqrt(sum(mre .* mre) / size(t_error,1) - mean_mre^2);
+if PLOT > 0,
+    figure;
+    plot(t_error, sqrt(mse), t_error, mre);
+    title('Error of splitted CTMC (with approximation)');
+    legend('RMSE', 'MRE');
+    xlabel(sprintf('RMSE: Mean = %0.5f,\tSD = %0.5f\nMRE: Mean = %0.5f,\tSD = %0.5f', mean_rmse, sd_rmse, mean_mre, sd_mre));
+end
+if FILEID > 0,
+    fprintf(FILEID, '%f,%f,%f,%f\n', mean_rmse, sd_rmse, mean_mre, sd_mre);
+end
+
 if PLOT > 0,
     figure;
     hold on 

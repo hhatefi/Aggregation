@@ -60,10 +60,13 @@ for i = 0:x2_0 - 1,
     time_samples{i + 1} = time_sample_i;
     tr_probs{i + 1} = tr_prob_i;
     
-%     % Test
-%     [tt,expexp] = app_exp_of_x3_in_birth_death_process((Q_splitted_T{i+1})', interval);
+    % Test
+%     %[tt,expexp] = app_exp_of_x3_in_birth_death_process((Q_splitted_T{i+1})', interval);
+%     tt = time_sample_i;
+%     expexp = calc_x3_inside_macro_state(c1, c2, x1_0, x2_0 - i, tt); 
 %     plot( tt, expexp, time_sample_i, tr_prob_i * (0:(nState4ithStage - 1))');
-%     % Test
+%     calc_RMSE( tt, expexp, time_sample_i, tr_prob_i * (0:(nState4ithStage - 1))')
+    % Test
     
 end
 pi0 = zeros(x2_0 + 1, 1);
@@ -88,6 +91,7 @@ pi0(1) = 1;
 
     function lambda_i_t = calc_lambda(t, i)
         % calculate outgoing lambda from state i at time t
+        lambda_i_t = -1;
         if i < 1 || i > x2_0,
             lambda_i_t = 0;
         else
@@ -99,8 +103,8 @@ pi0(1) = 1;
                     break;
                 end
             end
-            if ~(k < len),
-                fprintf('ERROR, No interpolation interval found.\n');
+            if lambda_i_t == -1,
+                fprintf(2, 'ERROR: No interpolation interval found.\n');
             end
         end
     end

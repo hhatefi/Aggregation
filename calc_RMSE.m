@@ -1,7 +1,7 @@
 function [rmse, t, f] = calc_RMSE(t1, f1, t2, f2)
 
-t1_len = size(t1, 1);
-t2_len = size(t2, 1);
+t1_len = length(t1);
+t2_len = length(t2);
 t_len = t1_len + t2_len;
 
 t = zeros(t_len, 1);
